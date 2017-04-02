@@ -19,9 +19,10 @@ import Network.Wai.Handler.Warp
 
 -- part #1: the service API
 type API =
-      "wishes" :> Header "Tenant" Tenant :> Get '[JSON] Wishlist
+      "wishes" :> Header "Tenant" Tenant
+        :> Get '[JSON] (Headers '[Header "Wish-Count" Int] Wishlist)
  :<|> "wishes" :> Header "Tenant" Tenant :> Capture "shop" Shop
-        :> Get '[JSON] Wishlist
+        :> Get '[JSON] (Headers '[Header "Wish-Count" Int] Wishlist)
  :<|> "new" :> Header "Tenant" Tenant :> ReqBody '[JSON] Wish
         :> Post '[JSON] Wishlist
 
@@ -33,22 +34,31 @@ server ref = getAllWishes ref
   :<|> getShopWishes ref
   :<|> postNewWish ref
 
-getAllWishes :: Store -> Maybe Tenant -> Handler Wishlist
-getAllWishes _ Nothing = return []
+getAllWishes
+  :: Store
+  -> Maybe Tenant
+  -> Handler (Headers '[Header "Wish-Count" Int] Wishlist)
+getAllWishes _ Nothing = throwError err400 { errBody = noTenant }
+  where noTenant = "you must provide a `Tenant' header to list all wishes!\n"
 getAllWishes store (Just tenant) = do
   tenants <- liftIO (readIORef store)
   case Map.lookup tenant tenants of
-    Just wishlist -> return wishlist
-    Nothing       -> return []
+    Just wishlist -> return $ addHeader (length wishlist) wishlist
+    Nothing       -> return $ addHeader 0 []
 
-getShopWishes :: Store -> Maybe Tenant -> Shop -> Handler Wishlist
+getShopWishes
+  :: Store
+  -> Maybe Tenant
+  -> Shop
+  -> Handler (Headers '[Header "Wish-Count" Int] Wishlist)
 getShopWishes store maybeTenant shop = do
   wishlist <- getAllWishes store maybeTenant
-  return $ filter (\wish -> getShop wish == shop) wishlist
+  let shopWishes = filter (\wish -> getShop wish == shop) (getResponse wishlist)
+  return $ addHeader (length shopWishes) shopWishes
 
 postNewWish :: Store -> Maybe Tenant -> Wish -> Handler Wishlist
-postNewWish _ Nothing _ =
-  throwError err403 { errBody = "you must provide a tenant to add a wish!" }
+postNewWish _ Nothing _ = throwError err400 { errBody = noTenant }
+  where noTenant = "you must provide a `Tenant' header to add a wish!\n"
 postNewWish store (Just tenant) wish = do
   tenants <- liftIO (readIORef store)
   let tenants'  = Map.insertWith (++) tenant [wish] tenants
@@ -56,6 +66,7 @@ postNewWish store (Just tenant) wish = do
   liftIO (writeIORef store tenants')
   return wishlist'
 
+-- part #3: running the server
 main :: IO ()
 main = do
   putStrLn "Starting wishlist service on port 8080..."
@@ -69,4 +80,5 @@ allWishesLink :: Text
 allWishesLink = toUrlPiece $ safeLink api allwishes
   where
     api = Proxy :: Proxy API
-    allwishes = Proxy :: Proxy ("wishes" :> Get '[JSON] Wishlist)
+    allwishes = Proxy :: Proxy (
+      "wishes" :> Get '[JSON] (Headers '[Header "Wish-Count" Int] Wishlist))

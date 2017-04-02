@@ -1,2 +1,13 @@
+simple service:
+---------------
+
 curl -v -X POST -H "Content-Type: application/json" -d '{"getShop":"Otto","getName":"foo","getPriority":99}' http://localhost:8080/new
+
+multitenant service:
+--------------------
+curl -v -X GET -H "Tenant: dominik" http://localhost:8080/wishes
+curl -v -X GET -H "Tenant: dominik" http://localhost:8080/wishes/amazon
+curl -v -X POST -H "Content-Type: application/json" -H "Tenant: dominik" \
+  -d '{"getShop": "Zalando", "getName": "Sneakers", "getPriority": 1}' \
+  http://localhost:8080/new
 
