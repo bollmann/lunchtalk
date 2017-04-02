@@ -6,6 +6,7 @@ module Wishlist.Types where
 import Control.Monad.Except
 import Control.Monad.State
 import Data.Aeson
+import qualified Data.Text as Text
 import GHC.Generics
 import Servant
 type Wishlist = [Wish]
@@ -31,7 +32,8 @@ instance FromHttpApiData Shop where
     | value == "amazon"  = pure Amazon
     | value == "otto"    = pure Otto
     | value == "zalando" = pure Zalando
-  parseUrlPiece _        = fail "parseUrlPiece: could not parse `Shop' value"
+  parseUrlPiece value    = fail $
+    "parseUrlPiece: could not parse `Shop' value '" ++ Text.unpack value ++ "'"
 
 instance ToHttpApiData Shop where
   toUrlPiece Amazon  = "amazon"

@@ -18,7 +18,6 @@ cabal-version:       >=1.10
 
 executable wishlist
   main-is:             Wishlist.hs
-  other-modules:       Wishlist
   other-extensions:    TypeOperators
                      , DataKinds
                      , OverloadedStrings

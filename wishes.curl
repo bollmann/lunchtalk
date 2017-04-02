@@ -1,4 +1,2 @@
-curl -X GET http://localhost:8080/wishes
-curl -X POST -d '{"topic": "book", "name": "Learn You a Haskell for Great Good!", "shop": "amazon"}' http://localhost:8080/new
-curl -X GET http://localhost:8080/tenant
-curl -X GET -H "hybris-tenant: foo" http://localhost:8080/tenant
+curl -v -X POST -H "Content-Type: application/json" -d '{"getShop":"Otto","getName":"foo","getPriority":99}' http://localhost:8080/new
+
