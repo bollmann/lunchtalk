@@ -1,15 +1,14 @@
-module Wishlist.Utils where
+module Wishlist.Simple.Client where
 
 import Data.Proxy
 import Network.HTTP.Client hiding (Proxy)
 import Servant.API
 import Servant.Client
 
-import Wishlist
+import WishlistSimple
 import Wishlist.Types
 
--- part #3: client functions for the above API
-
+-- part #4: client functions for the wishlist service API
 allWishes :: ClientM Wishlist
 shopWishes :: Shop -> ClientM Wishlist
 addWish :: Wish -> ClientM Wishlist

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
-module Wishlist where
+module WishlistSimple where
 
 import Wishlist.Types
 
@@ -38,10 +38,10 @@ getShopWishes store shop = do
 postNewWish :: Store -> Wish -> Handler Wishlist
 postNewWish store wish = do
   wishlist <- liftIO (readIORef store)
-
   liftIO (writeIORef store (wish:wishlist))
   return (wish:wishlist)
 
+-- part #3: run the server
 main :: IO ()
 main = do
   putStrLn "Starting wishlist service on port 8080..."
