@@ -1,26 +1,29 @@
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Wishlist.Types where
 
 import Control.Monad.Except
-import Control.Monad.State
+import Control.Monad.Reader
 import Data.Aeson
+import Data.IORef
+import Data.Map (Map)
 import qualified Data.Text as Text
 import GHC.Generics
 import Servant
 type Wishlist = [Wish]
 
 data Wish = Wish
-  { getPriority :: Int
-  , getName     :: String
+  { getName     :: String
   , getShop     :: Shop
   } deriving (Show, Read, Generic)
 
 data Shop = Amazon | Otto | Zalando
   deriving (Eq, Show, Read, Generic)
 
-newtype Tenant = Tenant String deriving (Eq, Ord)
+newtype Tenant = Tenant String deriving (Eq, Ord, Show)
 
 instance FromJSON Shop
 instance ToJSON Shop
@@ -46,7 +49,15 @@ instance FromHttpApiData Tenant where
 instance ToHttpApiData Tenant where
   toUrlPiece (Tenant tenant) = toUrlPiece tenant
 
-type Endpoint = ExceptT ServantErr (StateT Wishlist IO)
+type Service api = ServerT api (Endpoint Store)
+type TenantService api = ServerT api (Endpoint TenantStore)
+type Endpoint store = ReaderT store (ExceptT ServantErr IO)
 
-endpointToHandler :: forall a. Endpoint a -> Handler a
-endpointToHandler m = Handler . ExceptT $ evalStateT (runExceptT m) []
+type Store       = IORef Wishlist
+type TenantStore = IORef (Map Tenant Wishlist)
+
+endpointToHandler :: forall store. store -> (Endpoint store :~> Handler)
+endpointToHandler st = NT endpointToHandler'
+  where
+    endpointToHandler' :: Endpoint store a -> Handler a
+    endpointToHandler' m = Handler (runReaderT m st)
