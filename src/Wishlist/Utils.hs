@@ -11,7 +11,7 @@ import Wishlist.Types
 instance Show a => Show (Headers ls a) where
   show (Headers x _headers) = show x
 
-log :: Show a => String -> Endpoint st a -> Endpoint st a
+log :: Show a => String -> Controller st a -> Controller st a
 log msg action = do
   liftIO $ putStrLn $ "> " ++ msg ++ "..."
   val <- action `catchError` printError
@@ -22,5 +22,5 @@ log msg action = do
       liftIO $ putStrLn $ "ERROR: " ++ show err
       throwError err
 
-logWith :: (Show a, Show b) => String -> a -> Endpoint st b -> Endpoint st b
+logWith :: (Show a, Show b) => String -> a -> Controller st b -> Controller st b
 logWith msg val action = log (msg ++ " " ++ show val) action

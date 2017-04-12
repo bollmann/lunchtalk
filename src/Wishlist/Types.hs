@@ -49,15 +49,15 @@ instance FromHttpApiData Tenant where
 instance ToHttpApiData Tenant where
   toUrlPiece (Tenant tenant) = toUrlPiece tenant
 
-type Service api = ServerT api (Endpoint Store)
-type TenantService api = ServerT api (Endpoint TenantStore)
-type Endpoint store = ReaderT store (ExceptT ServantErr IO)
+type Service api = ServerT api (Controller Store)
+type TenantService api = ServerT api (Controller TenantStore)
+type Controller store = ReaderT store (ExceptT ServantErr IO)
 
 type Store       = IORef Wishlist
 type TenantStore = IORef (Map Tenant Wishlist)
 
-endpointToHandler :: forall store. store -> (Endpoint store :~> Handler)
-endpointToHandler st = NT endpointToHandler'
+toHandler :: forall store. store -> (Controller store :~> Handler)
+toHandler st = NT controllerToHandler'
   where
-    endpointToHandler' :: Endpoint store a -> Handler a
-    endpointToHandler' m = Handler (runReaderT m st)
+    controllerToHandler' :: Controller store a -> Handler a
+    controllerToHandler' m = Handler (runReaderT m st)

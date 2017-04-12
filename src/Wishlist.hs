@@ -36,7 +36,7 @@ server = getAllWishes :<|> getShopWishes :<|> postNewWish
 
 getAllWishes
   :: Maybe Tenant
-  -> Endpoint TenantStore (Headers '[Header "Wish-Count" Int] Wishlist)
+  -> Controller TenantStore (Headers '[Header "Wish-Count" Int] Wishlist)
 getAllWishes maybeTenant =
   logWith "getAllWishes" maybeTenant (getAllWishes' maybeTenant)
   where
@@ -53,13 +53,13 @@ getAllWishes maybeTenant =
 getShopWishes
   :: Maybe Tenant
   -> Shop
-  -> Endpoint TenantStore (Headers '[Header "Wish-Count" Int] Wishlist)
+  -> Controller TenantStore (Headers '[Header "Wish-Count" Int] Wishlist)
 getShopWishes maybeTenant shop = logWith "getShopWishes" shop $ do
   wishlist <- getAllWishes maybeTenant
   let shopWishes = filter (\wish -> getShop wish == shop) (getResponse wishlist)
   return $ addHeader (length shopWishes) shopWishes
 
-postNewWish :: Maybe Tenant -> Wish -> Endpoint TenantStore Wishlist
+postNewWish :: Maybe Tenant -> Wish -> Controller TenantStore Wishlist
 postNewWish maybeTenant wish =
   logWith "postNewWish" maybeTenant (postWish maybeTenant)
   where
@@ -79,4 +79,4 @@ main :: IO ()
 main = do
   putStrLn "Starting wishlist service on port 8080..."
   ref <- newIORef Map.empty
-  run 8080 $ serve (Proxy :: Proxy API) (enter (endpointToHandler ref) server)
+  run 8080 $ serve (Proxy :: Proxy API) (enter (toHandler ref) server)
