@@ -16,17 +16,19 @@ import Servant
 type Wishlist = [Wish]
 
 data Wish = Wish
-  { getName     :: String
-  , getShop     :: Shop
+  { getName :: String
+  , getShop :: Shop
   } deriving (Show, Read, Generic)
 
 data Shop = Amazon | Otto | Zalando
   deriving (Eq, Show, Read, Generic)
 
-newtype Tenant = Tenant String deriving (Eq, Ord, Show)
+newtype Tenant = Tenant String
+  deriving (Eq, Ord, Show)
 
 instance FromJSON Shop
 instance ToJSON Shop
+
 instance FromJSON Wish
 instance ToJSON Wish
 
@@ -49,15 +51,10 @@ instance FromHttpApiData Tenant where
 instance ToHttpApiData Tenant where
   toUrlPiece (Tenant tenant) = toUrlPiece tenant
 
-type Service api = ServerT api (Controller Store)
-type TenantService api = ServerT api (Controller TenantStore)
+type Service store api = ServerT api (Controller store)
 type Controller store = ReaderT store (ExceptT ServantErr IO)
 
-type Store       = IORef Wishlist
-type TenantStore = IORef (Map Tenant Wishlist)
-
 toHandler :: forall store. store -> (Controller store :~> Handler)
-toHandler st = NT controllerToHandler'
-  where
-    controllerToHandler' :: Controller store a -> Handler a
-    controllerToHandler' m = Handler (runReaderT m st)
+toHandler st = NT controllerToHandler where
+  controllerToHandler :: Controller store a -> Handler a
+  controllerToHandler m = Handler (runReaderT m st)

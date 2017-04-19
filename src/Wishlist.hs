@@ -11,7 +11,7 @@ import Control.Monad.Trans
 import Control.Monad.Reader
 import Control.Monad.Except
 import Data.IORef
-import Data.Maybe
+import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Proxy
 import Servant.API
@@ -22,16 +22,19 @@ import Wishlist.Types
 import Wishlist.Utils
 
 -- part #1: the service API
+type Wishlist' = Headers '[Header "Wish-Count" Int] Wishlist
 type API =
       "wishes" :> Header "Tenant" Tenant
-        :> Get '[JSON] (Headers '[Header "Wish-Count" Int] Wishlist)
- :<|> "wishes" :> Header "Tenant" Tenant :> Capture "shop" Shop
-        :> Get '[JSON] (Headers '[Header "Wish-Count" Int] Wishlist)
- :<|> "new" :> Header "Tenant" Tenant :> ReqBody '[JSON] Wish
-        :> Post '[JSON] Wishlist
+        :> Get '[JSON] Wishlist'
+ :<|> "wishes" :> Header "Tenant" Tenant
+        :> Capture "shop" Shop
+        :> Get '[JSON] Wishlist'
+ :<|> "wishes" :> Header "Tenant" Tenant :> ReqBody '[JSON] Wish
+        :> Post '[JSON] ()
 
 -- part #2: a server for the above API
-server :: TenantService API
+type TenantStore = IORef (Map Tenant Wishlist)
+server :: Service TenantStore API
 server = getAllWishes :<|> getShopWishes :<|> postNewWish
 
 getAllWishes
@@ -44,9 +47,8 @@ getAllWishes maybeTenant =
       let noTenant = "you must provide a `Tenant' header to list all wishes!\n"
       throwError err400 { errBody = noTenant }
     getAllWishes' (Just tenant) = do
-      store   <- ask
-      tenants <- liftIO (readIORef store)
-      case Map.lookup tenant tenants of
+      store <- ask >>= liftIO . readIORef
+      case Map.lookup tenant store of
         Just wishlist -> return $ addHeader (length wishlist) wishlist
         Nothing       -> return $ addHeader 0 []
 
@@ -59,7 +61,7 @@ getShopWishes maybeTenant shop = logWith "getShopWishes" shop $ do
   let shopWishes = filter (\wish -> getShop wish == shop) (getResponse wishlist)
   return $ addHeader (length shopWishes) shopWishes
 
-postNewWish :: Maybe Tenant -> Wish -> Controller TenantStore Wishlist
+postNewWish :: Maybe Tenant -> Wish -> Controller TenantStore ()
 postNewWish maybeTenant wish =
   logWith "postNewWish" maybeTenant (postWish maybeTenant)
   where
@@ -70,9 +72,7 @@ postNewWish maybeTenant wish =
       store <- ask
       tenants <- liftIO (readIORef store)
       let tenants'  = Map.insertWith (++) tenant [wish] tenants
-          wishlist' = fromJust $ Map.lookup tenant tenants'
       liftIO (writeIORef store tenants')
-      return wishlist'
 
 -- part #3: running the server
 main :: IO ()
