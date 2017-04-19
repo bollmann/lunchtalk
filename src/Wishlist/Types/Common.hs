@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Wishlist.Types.Common where
 
+import Control.Applicative
 import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Aeson
@@ -24,8 +25,12 @@ data Shop = Amazon | Otto | Zalando
 instance FromJSON Shop
 instance ToJSON Shop
 
-instance FromJSON Wish
-instance ToJSON Wish
+instance FromJSON Wish where
+  parseJSON (Object v) = Wish <$> v .: "name" <*> v .: "shop"
+  parseJSON _          = empty
+
+instance ToJSON Wish where
+  toJSON (Wish name shop) = object [ "name" .= name, "shop" .= shop ]
 
 instance FromHttpApiData Shop where
   parseUrlPiece value
