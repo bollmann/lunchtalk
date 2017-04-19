@@ -11,35 +11,34 @@ import Control.Monad.Trans
 import Control.Monad.Reader
 import Control.Monad.Except
 import Data.IORef
-import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Proxy
 import Servant.API
 import Servant.Server
 import Network.Wai.Handler.Warp
 
-import Wishlist.Types
+import Wishlist.Types.MultiTenant
 import Wishlist.Utils
 
 -- part #1: the service API
-type Wishlist' = Headers '[Header "Wish-Count" Int] Wishlist
 type API =
       "wishes" :> Header "Tenant" Tenant
-        :> Get '[JSON] Wishlist'
+        :> Get '[JSON] RichWishlist
  :<|> "wishes" :> Header "Tenant" Tenant
         :> Capture "shop" Shop
-        :> Get '[JSON] Wishlist'
+        :> Get '[JSON] RichWishlist
  :<|> "wishes" :> Header "Tenant" Tenant :> ReqBody '[JSON] Wish
         :> Post '[JSON] ()
 
+type RichWishlist = Headers '[Header "Wish-Count" Int] Wishlist
+
 -- part #2: a server for the above API
-type TenantStore = IORef (Map Tenant Wishlist)
-server :: Service TenantStore API
+server :: Service API
 server = getAllWishes :<|> getShopWishes :<|> postNewWish
 
 getAllWishes
   :: Maybe Tenant
-  -> Controller TenantStore (Headers '[Header "Wish-Count" Int] Wishlist)
+  -> Controller (Headers '[Header "Wish-Count" Int] Wishlist)
 getAllWishes maybeTenant =
   logWith "getAllWishes" maybeTenant (getAllWishes' maybeTenant)
   where
@@ -55,13 +54,13 @@ getAllWishes maybeTenant =
 getShopWishes
   :: Maybe Tenant
   -> Shop
-  -> Controller TenantStore (Headers '[Header "Wish-Count" Int] Wishlist)
+  -> Controller (Headers '[Header "Wish-Count" Int] Wishlist)
 getShopWishes maybeTenant shop = logWith "getShopWishes" shop $ do
   wishlist <- getAllWishes maybeTenant
   let shopWishes = filter (\wish -> getShop wish == shop) (getResponse wishlist)
   return $ addHeader (length shopWishes) shopWishes
 
-postNewWish :: Maybe Tenant -> Wish -> Controller TenantStore ()
+postNewWish :: Maybe Tenant -> Wish -> Controller ()
 postNewWish maybeTenant wish =
   logWith "postNewWish" maybeTenant (postWish maybeTenant)
   where

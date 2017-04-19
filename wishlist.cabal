@@ -13,7 +13,6 @@ cabal-version:       >=1.10
 
 executable wishlist-simple
   main-is:             WishlistSimple.hs
-  other-modules:       Wishlist.Simple.Client
   other-extensions:    TypeOperators
                      , DataKinds
                      , OverloadedStrings

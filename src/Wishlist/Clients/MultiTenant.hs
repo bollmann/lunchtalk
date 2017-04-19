@@ -1,4 +1,4 @@
-module Wishlist.Multitenant.Client where
+module Wishlist.Clients.MultiTenant where
 
 import Data.Proxy
 import Network.HTTP.Client hiding (Proxy)
@@ -6,12 +6,12 @@ import Servant.API
 import Servant.Client
 
 import Wishlist
-import Wishlist.Types
+import Wishlist.Types.MultiTenant
 
 -- part #4: client functions for the wishlist service API
-allWishes :: Maybe Tenant -> ClientM Wishlist
-shopWishes :: Maybe Tenant -> Shop -> ClientM Wishlist
-addWish :: Maybe Tenant -> Wish -> ClientM Wishlist
+allWishes :: Maybe Tenant -> ClientM RichWishlist
+shopWishes :: Maybe Tenant -> Shop -> ClientM RichWishlist
+addWish :: Maybe Tenant -> Wish -> ClientM ()
 allWishes :<|> shopWishes :<|> addWish = client (Proxy :: Proxy API)
 
 exec :: ClientM a -> IO (Either ServantError a)
