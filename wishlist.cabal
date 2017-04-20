@@ -31,8 +31,8 @@ executable wishlist-simple
   default-language:    Haskell2010
   ghc-options:         -Wall -main-is WishlistSimple
 
-executable wishlist
-  main-is:             Wishlist.hs
+executable wishlist-mt
+  main-is:             WishlistMT.hs
   other-extensions:    TypeOperators
                      , DataKinds
                      , OverloadedStrings
@@ -49,4 +49,4 @@ executable wishlist
                      , warp >=3.2 && <3.3
   hs-source-dirs:      src
   default-language:    Haskell2010
-  ghc-options:         -Wall -main-is Wishlist
+  ghc-options:         -Wall -main-is WishlistMT

@@ -5,7 +5,7 @@ import Network.HTTP.Client hiding (Proxy)
 import Servant.API
 import Servant.Client
 
-import Wishlist
+import WishlistMT
 import Wishlist.Types.MultiTenant
 
 -- part #4: client functions for the wishlist service API

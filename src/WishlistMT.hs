@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE DataKinds         #-}
-module Wishlist where
+module WishlistMT where
 
 import Prelude hiding (log)
 
