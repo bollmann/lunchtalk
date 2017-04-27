@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes    #-}
 module Wishlist.Types.Simple
   ( module Wishlist.Types.Simple
   , module Wishlist.Types.Common
