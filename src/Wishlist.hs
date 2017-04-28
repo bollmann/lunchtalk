@@ -18,7 +18,7 @@ import Servant.API
 import Servant.Server
 import Network.Wai.Handler.Warp
 
-import Wishlist.Types.MultiTenant
+import Wishlist.Types.Simple
 import Wishlist.Utils
 
 -- part #1: the service API
