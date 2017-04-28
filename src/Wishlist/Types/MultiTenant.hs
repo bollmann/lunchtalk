@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE RankNTypes #-}
 module Wishlist.Types.MultiTenant
@@ -19,6 +20,8 @@ instance FromHttpApiData Tenant where
 
 instance ToHttpApiData Tenant where
   toUrlPiece (Tenant tenant) = toUrlPiece tenant
+
+type RichWishlist = Headers '[Header "Wish-Count" Int] Wishlist
 
 type MultiStore = IORef (Map Tenant Wishlist)
 type Service api = Service' MultiStore api

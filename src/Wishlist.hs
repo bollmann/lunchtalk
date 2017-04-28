@@ -26,16 +26,16 @@ type API = ???
 
 -- part #2: a service for the above API
 service :: Service API
-service = ???
+service = error "???"
 
 getAllWishes :: Controller Wishlist
-getAllWishes = log "getAllWishes" $ ???
+getAllWishes = log "getAllWishes" $ error "???"
 
 getShopWishes :: Shop -> Controller Wishlist
-getShopWishes shop = log "getShopWishes" $ ???
+getShopWishes shop = log "getShopWishes" $ error "???"
 
 postNewWish :: Wish -> Controller ()
-postNewWish (Just tenant) wish = logWith "postNewWish " wish $ ???
+postNewWish wish = logWith "postNewWish " wish $ error "???"
 
 -- part #3: run the server
 main :: IO ()
