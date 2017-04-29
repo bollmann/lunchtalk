@@ -2,22 +2,43 @@
 % The benefits of service APIs as Types
 % Dominik Bollmann -- May, 9th, 2017
 
-![The Haskell Logo](imgs/haskell.png){width=350}
+Let's build a Wishlist micro-service to store our wishes
+--------------------------------------------------------
 
-* basic building blocks: Types and (pure) functions
-<!-- * distinctive features: lazyness and typeclasses -->
-* It's very exciting and made me rethink programming!
+* informal API:
 
+```
+GET  /wishes         -- get all my wishes
+GET  /wishes/:shop   -- get all my wishes at :shop
+                        (e.g., Amazon, Zalando)
+POST /wishes         -- add a new wish to my wishlist
+```
+. . .
 
-Haskell Types: describe your data
----------------------------------
+* Wishes de/serialized as JSON:
+
+```json
+{ "name": "Game of Thrones 8", "shop": "Amazon" }
+{ "name": "Adidas Sneakers", "shop": "Zalando" }
+```
+
+How do we build the Wishlist micro-service in Haskell?
+----------------------------------------------
+
+### What's Haskell? ![The Haskell Logo](imgs/haskell-logo.png){width=150}\
+
+* a purely functional, strongly typed programming language
+
+### basic building blocks: Types and (pure) functions
+
+* types: describe your data
+* functions: transform your data
+
+Haskell Types: how to model a `Wish` in Haskell
+-------------------------------------------------
 
 ```haskell
-data Wish = Wish
-  { name :: String
-  , shop :: Shop
-  }
-
+data Wish = Wish { name :: String, shop :: Shop }
 data Shop = Amazon | Zalando | Otto
 ```
 . . .
@@ -30,17 +51,29 @@ shoes :: Wish
 shoes = Wish "Adidas Sneakers" Zalando
 ```
 
-
-Types and Functions
--------------------
+Haskell Types: how to model a `Wishlist` in Haskell
+-------------------------------------------------
 
 ```haskell
 data List a = Nil | Cons a (List a)
+
 type Wishlist = List Wish
 ```
 . . .
 
-### Haskell functions: transform your data
+```haskell
+emptyList :: List a
+emptyList = Nil
+
+myWishes :: List Wish
+myWishes = Cons dvd (Cons shoes Nil)
+  where
+    dvd   = Wish "Game of Thrones 8" Amazon
+	shoes = Wish "Adidas Sneakers" Zalando
+```
+
+Haskell functions: transforming `Wishlist`s, etc.
+-------------------------------------------
 
 ```haskell
 filter :: (a -> Bool) -> List a -> List a
@@ -50,16 +83,18 @@ filter p (Cons x xs)
   | otherwise = filter p xs
 ```
 
-. . .
+Haskell prelude end... how do we build the wishlist service?
+---------------------------------------------
 
-### A tower of abstractions on top!
+### Three easy steps thanks to servant: ![Servant library](imgs/servant.png){width=70}\
 
-* functors, applicatives, monads, ...
-* advanced type-level machinery
+1. formalize informal API as a type
+2. define controllers wrt type spec.
+3. run micro-service
 
 
-Problem: Let's build a Wishlist micro-service in Haskell
---------------------------------------------------------
+Step 1): Formalize the API as a Haskell Type
+--------------------------------------------
 
 * informal API:
 
@@ -70,18 +105,9 @@ GET  /wishes/:shop   -- get all my wishes at :shop
 POST /wishes         -- add a new wish to my wishlist
 ```
 
-. . .
 
-* Wishes serialized as JSON:
-
-```json
-{ "name": "Game of Thrones 8", "shop": "Amazon" }
-{ "name": "Adidas Sneakers", "shop": "Zalando" }
-```
-
-
-Step 1): Formalize the API as a Haskell Type
---------------------------------------------
+Step 1): Benefits of an API as a Type
+-------------------------------------
 
 ```haskell
 type API =
@@ -90,48 +116,54 @@ type API =
          :> Get '[JSON] Wishlist
   :<|> "wishes" :> ReqBody '[JSON] Wish
          :> Post '[JSON] ()
-
 ```
-. . .
 
 * this really *is* APIs first!
-* The wishlist API is explicit in the program (compare!)
-* The API type denotes a live specification (compare!)
+
+### Benefits
+
+* The wishlist API is *explicit* in the program (compare!)
+* The API type denotes a *live specification* (compare!)
+
+Step 1): Benefits of an API as a Type
+-------------------------------------
+
+```haskell
+type API =
+       "wishes" :> Get '[JSON] Wishlist
+  :<|> "wishes" :> Capture "shop" Shop
+         :> Get '[JSON] Wishlist
+  :<|> "wishes" :> ReqBody '[JSON] Wish
+         :> Post '[JSON] ()
+```
+
+* this really *is* APIs first!
+
+### Benefits
+
+* The wishlist API is *explicit* in the program (compare!)
+* The API type denotes a *live specification* (compare!)
 
 
 Step 2): the API defines the controller types:
 ----------------------------------------------
 
 ```haskell
-type Store = IORef Wishlist
 
-service :: Service Store API
-service = getAllWishes
-  :<|> getShopWishes
-  :<|> postNewWish
-
-
-getAllWishes :: Controller Store Wishlist
-getAllWishes = do
-  store <- ask
-  liftIO (readIORef store)
-```
-
----
-
-```haskell
-getShopWishes :: Shop -> Controller Store Wishlist
-getShopWishes shop = do
-  wishlist <- getAllWishes
-  pure $ filter (\wish -> getShop wish == shop) wishlist
+type API =
+       "wishes" :> Get '[JSON] Wishlist
+  :<|> "wishes" :> Capture "shop" Shop
+         :> Get '[JSON] Wishlist
+  :<|> "wishes" :> ReqBody '[JSON] Wish
+         :> Post '[JSON] ()
 
 
-postNewWish :: Wish -> Controller Store ()
-postNewWish wish = do
-  store <- ask
-  liftIO $ do
-    wishlist <- readIORef store
-    writeIORef store (wish:wishlist)
+service :: Service API
+service = getAllWishes :<|> getShopWishes :<|> postNewWish
+
+getAllWishes  :: Controller Wishlist
+getShopWishes :: Shop -> Controller Wishlist
+postNewWish   :: Wish -> Controller ()
 ```
 
 Step 3): Running the service
@@ -171,7 +203,7 @@ POST /wishes         -- add a new wish to my wishlist
 ### New requirements:
 
 * Require `Tenant` request header on all requests
-* Enforce `Wish-Count` response header to be sent in all `GET` responses
+* Enforce `Wish-Count` response header to be sent in `GET` responses
 
 Adjust (enrich) our wishlist's formal API
 -----------------------------------------
@@ -191,12 +223,12 @@ type RichWishlist =
 ```
 
 New API specification guides service refactoring
---------------------------------------------------
+------------------------------------------------
 
 ```haskell
 type TenantStore = IORef (Map Tenant Wishlist)
 
-server :: Service TenantStore API
+server :: Service API
 server = getAllWishes
   :<|> getShopWishes
   :<|> postNewWish
@@ -208,11 +240,13 @@ server = getAllWishes
 type RichWishlist =
   Headers '[Header "Wish-Count" Int] Wishlist
 
-getAllWishes
-  :: Maybe Tenant -> Controller TenantStore RichWishlist
+getAllWishes :: Maybe Tenant -> Controller RichWishlist
 getAllWishes Nothing = do
   let noTenant = "you must provide a Tenant header!"
   throwError err400 { errBody = noTenant }
+```
+. . .
+```haskell
 getAllWishes (Just tenant) = do
   store   <- ask
   tenants <- liftIO (readIORef store)
@@ -242,7 +276,9 @@ Benefits:
 
 1. explicit, formal, live spec/type for a service.
 2. yields services that are faithful wrt their API.
-3. Haskell's type system catches many errors at compile-time.
+3. clients and docs for the API come for free!
+
+4. Haskell's type system catches many errors at compile-time.
 
 References
 ----------
@@ -250,3 +286,27 @@ References
 1. Benjamin C. Pierce. The Science of Deep Specification, Nov 2015. https://www.youtube.com/watch?v=Y2jQe8DFzUM
 2. Julian Arni. Servant: a type-level DSL for web APIs, July, 2015. https://www.youtube.com/watch?v=snOBI8PcbMQ
 3. Servant Contributors. The Servant Library. https://hackage.haskell.org/package/servant
+4. Paul Hudak, et al. A History of Haskell: Being Lazy with Class. 2007. http://haskell.cs.yale.edu/wp-content/uploads/2011/02/history.pdf
+
+Compare to implicit APIs:
+-------------------------
+
+```java
+@Path("/wishes")
+public class Wishes {
+
+  @GET
+  @Produces("application/json")
+  GetWishesResponse getWishes() { ... }
+
+  @POST
+  @Consumes("application/json")
+  PostWishesResponse postWishes(Wish entity) { ... }
+
+  @GET
+  @Path("/{shop}")
+  @Produces("application/json")
+  GetWishesByShopResponse getWishesByShop(
+    @PathParam("shop") String shop) { ... }
+}
+```
