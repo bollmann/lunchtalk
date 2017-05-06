@@ -24,15 +24,17 @@ import Wishlist.Utils
 -- part #1: the service API
 type API = ???
 
+
 -- part #2: a service for the above API
 service :: Service API
 service = error "???"
+
 
 -- part #3: run the server
 main :: IO ()
 main = do
   putStrLn "Starting wishlist service on port 8080..."
-  store <- newIORef []
+  store <- newIORef Nil
   let proxy    = Proxy :: Proxy API
       service' = enter (toHandler store) service
   run 8080 $ serve proxy service'

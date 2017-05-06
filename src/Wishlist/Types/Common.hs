@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE PatternSynonyms #-}
 module Wishlist.Types.Common where
 
 import Control.Applicative
@@ -52,3 +53,9 @@ toHandler :: forall store. store -> Controller' store :~> Handler
 toHandler st = NT controllerToHandler where
   controllerToHandler :: Controller' store a -> Handler a
   controllerToHandler m = Handler (runReaderT m st)
+
+pattern Cons :: a -> [a] -> [a]
+pattern Cons x xs = x:xs
+
+pattern Nil :: [a]
+pattern Nil = []
