@@ -28,15 +28,6 @@ type API = ???
 service :: Service API
 service = error "???"
 
-getAllWishes :: Controller Wishlist
-getAllWishes = log "getAllWishes" $ error "???"
-
-getShopWishes :: Shop -> Controller Wishlist
-getShopWishes shop = log "getShopWishes" $ error "???"
-
-postNewWish :: Wish -> Controller ()
-postNewWish wish = logWith "postNewWish " wish $ error "???"
-
 -- part #3: run the server
 main :: IO ()
 main = do

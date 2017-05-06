@@ -15,19 +15,19 @@ POST /wishes         -- add a new wish to my wishlist
 ```
 . . .
 
-* Wishes de/serialized as JSON:
+* Wishes serialized as JSON:
 
 ```json
 { "name": "Game of Thrones 8", "shop": "Amazon" }
 { "name": "Adidas Sneakers", "shop": "Zalando" }
 ```
 
-How do we build the Wishlist micro-service in Haskell?
+How to build this Wishlist service in Haskell?
 ----------------------------------------------
 
 ### What's Haskell? ![The Haskell Logo](imgs/haskell-logo.png){width=150}\
 
-* a purely functional, strongly typed programming language
+* a strongly typed, purely functional programming language
 
 ### basic building blocks: Types and (pure) functions
 
@@ -35,7 +35,7 @@ How do we build the Wishlist micro-service in Haskell?
 * functions: transform your data
 
 Haskell Types: how to model a `Wish` in Haskell
--------------------------------------------------
+-----------------------------------------------
 
 ```haskell
 data Wish = Wish { name :: String, shop :: Shop }
@@ -52,7 +52,7 @@ shoes = Wish "Adidas Sneakers" Zalando
 ```
 
 Haskell Types: how to model a `Wishlist` in Haskell
--------------------------------------------------
+---------------------------------------------------
 
 ```haskell
 data List a = Nil | Cons a (List a)
@@ -72,7 +72,7 @@ myWishes = Cons dvd (Cons shoes Nil)
 	shoes = Wish "Adidas Sneakers" Zalando
 ```
 
-Haskell functions: transforming `Wishlist`s, etc.
+Haskell functions: transforming `Wishlist`s
 -------------------------------------------
 
 ```haskell
@@ -86,12 +86,11 @@ filter p (Cons x xs)
 Haskell prelude end... how do we build the wishlist service?
 ---------------------------------------------
 
-### Three easy steps thanks to servant: ![Servant library](imgs/servant.png){width=70}\
+### Three easy steps thanks to Servant: ![Servant library](imgs/servant.png){width=70}\
 
 1. formalize informal API as a type
-2. define controllers wrt type spec.
+2. define wishlist service wrt type spec.
 3. run micro-service
-
 
 Step 1): Formalize the API as a Haskell Type
 --------------------------------------------
@@ -106,8 +105,8 @@ POST /wishes         -- add a new wish to my wishlist
 ```
 
 
-Step 1): Benefits of an API as a Type
--------------------------------------
+Benefits of an API as a Type
+----------------------------
 
 ```haskell
 type API =
@@ -125,28 +124,8 @@ type API =
 * The wishlist API is *explicit* in the program (compare!)
 * The API type denotes a *live specification* (compare!)
 
-Step 1): Benefits of an API as a Type
--------------------------------------
-
-```haskell
-type API =
-       "wishes" :> Get '[JSON] Wishlist
-  :<|> "wishes" :> Capture "shop" Shop
-         :> Get '[JSON] Wishlist
-  :<|> "wishes" :> ReqBody '[JSON] Wish
-         :> Post '[JSON] ()
-```
-
-* this really *is* APIs first!
-
-### Benefits
-
-* The wishlist API is *explicit* in the program (compare!)
-* The API type denotes a *live specification* (compare!)
-
-
-Step 2): the API defines the controller types:
-----------------------------------------------
+the `API` type specifies the service/controllers:
+-----------------------------------------------
 
 ```haskell
 
@@ -169,16 +148,21 @@ postNewWish   :: Wish -> Controller ()
 Step 3): Running the service
 ----------------------------
 
+* easy, provided by servant.
+
 ```haskell
 main :: IO ()
 main = do
   putStrLn "Starting wishlist service on port 8080..."
   store <- newIORef []
+
+  let proxy    = Proxy :: Proxy API
+      service' = enter (toHandler store) service
+
   run 8080 $ serve proxy service'
-  where
-    proxy    = Proxy :: Proxy API
-    service' = enter (toHandler store) service
+
 ```
+
 
 That's it! Let's see the service in action:
 -------------------------------------------
@@ -205,8 +189,8 @@ POST /wishes         -- add a new wish to my wishlist
 * Require `Tenant` request header on all requests
 * Enforce `Wish-Count` response header to be sent in `GET` responses
 
-Adjust (enrich) our wishlist's formal API
------------------------------------------
+Adjust (enrich) our wishlist's formal API:
+------------------------------------------
 
 ```haskell
 type API =
@@ -222,8 +206,8 @@ type RichWishlist =
   Headers '[Header "Wish-Count" Int] Wishlist
 ```
 
-New API specification guides service refactoring
-------------------------------------------------
+New API type guides service refactoring:
+----------------------------------------
 
 ```haskell
 type TenantStore = IORef (Map Tenant Wishlist)
@@ -277,16 +261,19 @@ Benefits:
 1. explicit, formal, live spec/type for a service.
 2. yields services that are faithful wrt their API.
 3. clients and docs for the API come for free!
-
 4. Haskell's type system catches many errors at compile-time.
+
 
 References
 ----------
+
+* Source Code: `https://github.com/bollmann/lunchtalk.git`
 
 1. Benjamin C. Pierce. The Science of Deep Specification, Nov 2015. https://www.youtube.com/watch?v=Y2jQe8DFzUM
 2. Julian Arni. Servant: a type-level DSL for web APIs, July, 2015. https://www.youtube.com/watch?v=snOBI8PcbMQ
 3. Servant Contributors. The Servant Library. https://hackage.haskell.org/package/servant
 4. Paul Hudak, et al. A History of Haskell: Being Lazy with Class. 2007. http://haskell.cs.yale.edu/wp-content/uploads/2011/02/history.pdf
+
 
 Compare to implicit APIs:
 -------------------------
