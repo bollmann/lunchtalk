@@ -24,11 +24,9 @@ import Wishlist.Utils
 -- part #1: the service API
 type API = ???
 
-
 -- part #2: a service for the above API
 service :: Service API
 service = error "???"
-
 
 -- part #3: run the server
 main :: IO ()

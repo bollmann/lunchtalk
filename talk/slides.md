@@ -39,6 +39,7 @@ Haskell Types: how to model a `Wish` in Haskell
 
 ```haskell
 data Wish = Wish { name :: String, shop :: Shop }
+
 data Shop = Amazon | Zalando | Otto
 ```
 . . .
@@ -72,7 +73,7 @@ myWishes = Cons dvd (Cons shoes Nil)
 	shoes = Wish "Adidas Sneakers" Zalando
 ```
 
-Haskell functions: transforming `Wishlist`s
+Haskell functions: how to filter `Wishlist`s?
 -------------------------------------------
 
 ```haskell
@@ -92,10 +93,10 @@ Haskell prelude end... how do we build the wishlist service?
 2. define wishlist service wrt type spec.
 3. run micro-service
 
-Step 1): Formalize the API as a Haskell Type
---------------------------------------------
+Off to Emacs...
+---------------
 
-* informal API:
+* Recap: informal API
 
 ```
 GET  /wishes         -- get all my wishes
@@ -104,6 +105,15 @@ GET  /wishes/:shop   -- get all my wishes at :shop
 POST /wishes         -- add a new wish to my wishlist
 ```
 
+That's it! Let's see the service in action:
+-------------------------------------------
+
+Use `curl` queries to
+
+* list all/shop wishes
+* add a new wish
+
+querying the wishlist service must conform to its API.
 
 Benefits of an API as a Type
 ----------------------------
@@ -145,34 +155,6 @@ getShopWishes :: Shop -> Controller Wishlist
 postNewWish   :: Wish -> Controller ()
 ```
 
-Step 3): Running the service
-----------------------------
-
-* easy, provided by servant.
-
-```haskell
-main :: IO ()
-main = do
-  putStrLn "Starting wishlist service on port 8080..."
-  store <- newIORef []
-
-  let proxy    = Proxy :: Proxy API
-      service' = enter (toHandler store) service
-
-  run 8080 $ serve proxy service'
-
-```
-
-
-That's it! Let's see the service in action:
--------------------------------------------
-
-Use `curl` queries to
-
-* list all/shop wishes
-* add a new wish
-
-querying the wishlist service must conform to its API.
 
 This was simple: could we build a multi-tenant service, too?
 ------------------------------------------------------------
@@ -210,12 +192,8 @@ New API type guides service refactoring:
 ----------------------------------------
 
 ```haskell
-type TenantStore = IORef (Map Tenant Wishlist)
-
-server :: Service API
-server = getAllWishes
-  :<|> getShopWishes
-  :<|> postNewWish
+service :: Service API
+service = getAllWishes :<|> getShopWishes :<|> postNewWish
 ```
 
 ---
@@ -260,14 +238,14 @@ Benefits:
 
 1. explicit, formal, live spec/type for a service.
 2. yields services that are faithful wrt their API.
-3. clients and docs for the API come for free!
-4. Haskell's type system catches many errors at compile-time.
+3. ... (clients and docs come for free)
 
+* Servant offers much more!
 
 References
 ----------
 
-* Source Code: `https://github.com/bollmann/lunchtalk.git`
+* Code: `https://github.com/bollmann/lunchtalk.git`
 
 1. Benjamin C. Pierce. The Science of Deep Specification, Nov 2015. https://www.youtube.com/watch?v=Y2jQe8DFzUM
 2. Julian Arni. Servant: a type-level DSL for web APIs, July, 2015. https://www.youtube.com/watch?v=snOBI8PcbMQ
