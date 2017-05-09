@@ -1,5 +1,5 @@
 % Building micro-services in Haskell
-% The benefits of service APIs as Types
+% Service APIs as Types
 % Dominik Bollmann -- May, 9th, 2017
 
 Let's build a Wishlist micro-service to store our wishes
@@ -84,6 +84,15 @@ filter p (Cons x xs)
   | otherwise = filter p xs
 ```
 
+. . .
+
+```haskell
+
+
+filter (\n -> n % 2 == 0) (Cons 1 (Cons 2 (Cons 3 Nil)))
+  == Cons 2 Nil
+```
+
 Haskell prelude end... how do we build the wishlist service?
 ---------------------------------------------
 
@@ -155,6 +164,66 @@ getShopWishes :: Shop -> Controller Wishlist
 postNewWish   :: Wish -> Controller ()
 ```
 
+This was simple... Can we create more expressive APIs?
+------------------------------------------------------
+
+### Yes! Servant APIs can also:
+
+* require specific request headers in requests
+
+. . .
+
+* enforce specific response headers in controller responses
+
+. . .
+
+* ensure even type-safe links: all used links are within `API`
+
+Conclusion
+----------
+
+Haskell + Servant: interesting approach using "APIs as Types".
+
+Benefits:
+
+1. explicit, formal, live spec/type for a service.
+2. yields services that are faithful wrt their API.
+3. clients and docs come (almost) for free
+
+* Servant offers much more!
+
+References
+----------
+
+* Code: `https://github.com/bollmann/lunchtalk.git`
+
+1. Benjamin C. Pierce. The Science of Deep Specification, Nov 2015. https://www.youtube.com/watch?v=Y2jQe8DFzUM
+2. Julian Arni. Servant: a type-level DSL for web APIs, July, 2015. https://www.youtube.com/watch?v=snOBI8PcbMQ
+3. Servant Contributors. The Servant Library. https://hackage.haskell.org/package/servant
+4. Paul Hudak, et al. A History of Haskell: Being Lazy with Class. 2007. http://haskell.cs.yale.edu/wp-content/uploads/2011/02/history.pdf
+
+Compare to implicit APIs:
+-------------------------
+
+```java
+@Path("/wishes")
+public class Wishes {
+
+  @GET
+  @Produces("application/json")
+  GetWishesResponse getWishes() { ... }
+
+  @POST
+  @Consumes("application/json")
+  PostWishesResponse postWishes(Wish entity) { ... }
+
+  @GET
+  @Path("/{shop}")
+  @Produces("application/json")
+  GetWishesByShopResponse getWishesByShop(
+    @PathParam("shop") String shop) { ... }
+}
+```
 
 This was simple: could we build a multi-tenant service, too?
 ------------------------------------------------------------
@@ -191,12 +260,15 @@ type RichWishlist =
 New API type guides service refactoring:
 ----------------------------------------
 
+* no changes required here
+
 ```haskell
 service :: Service API
 service = getAllWishes :<|> getShopWishes :<|> postNewWish
 ```
 
----
+New API type requires changes to `getAllWishes`
+-----------------------------------------------
 
 ```haskell
 type RichWishlist =
@@ -210,12 +282,8 @@ getAllWishes Nothing = do
 . . .
 ```haskell
 getAllWishes (Just tenant) = do
-  store   <- ask
-  tenants <- liftIO (readIORef store)
-  case Map.lookup tenant tenants of
-    Just wishlist ->
-	  pure $ addHeader (length wishlist) wishlist
-    Nothing -> pure $ addHeader 0 []
+  wishlist <- ... -- find tenant's wishlist in store
+  pure $ addHeader (length wishlist) wishlist
 ```
 
 Static (compile-time) guarantees wrt the API spec.
@@ -227,51 +295,3 @@ Static (compile-time) guarantees wrt the API spec.
 going further:
 
 * ensure even type-safe links: all used links are within `API`.
-
-
-Conclusion
-----------
-
-Haskell + Servant: interesting approach using "APIs as Types".
-
-Benefits:
-
-1. explicit, formal, live spec/type for a service.
-2. yields services that are faithful wrt their API.
-3. ... (clients and docs come for free)
-
-* Servant offers much more!
-
-References
-----------
-
-* Code: `https://github.com/bollmann/lunchtalk.git`
-
-1. Benjamin C. Pierce. The Science of Deep Specification, Nov 2015. https://www.youtube.com/watch?v=Y2jQe8DFzUM
-2. Julian Arni. Servant: a type-level DSL for web APIs, July, 2015. https://www.youtube.com/watch?v=snOBI8PcbMQ
-3. Servant Contributors. The Servant Library. https://hackage.haskell.org/package/servant
-4. Paul Hudak, et al. A History of Haskell: Being Lazy with Class. 2007. http://haskell.cs.yale.edu/wp-content/uploads/2011/02/history.pdf
-
-
-Compare to implicit APIs:
--------------------------
-
-```java
-@Path("/wishes")
-public class Wishes {
-
-  @GET
-  @Produces("application/json")
-  GetWishesResponse getWishes() { ... }
-
-  @POST
-  @Consumes("application/json")
-  PostWishesResponse postWishes(Wish entity) { ... }
-
-  @GET
-  @Path("/{shop}")
-  @Produces("application/json")
-  GetWishesByShopResponse getWishesByShop(
-    @PathParam("shop") String shop) { ... }
-}
-```
