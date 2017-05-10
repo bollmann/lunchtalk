@@ -21,6 +21,11 @@ docker:
   enable: true
   repo: "fpco/stack-build"
 
+image:
+  container:
+    name: wishlist
+    base: fpco/stack-run
+
 # User packages to be built.
 # Various formats can be used as shown in the example below.
 # 

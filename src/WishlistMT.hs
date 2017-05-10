@@ -30,8 +30,6 @@ type API =
  :<|> "wishes" :> Header "Tenant" Tenant :> ReqBody '[JSON] Wish
         :> Post '[JSON] ()
 
-type RichWishlist = Headers '[Header "Wish-Count" Int] Wishlist
-
 -- part #2: a server for the above API
 server :: Service API
 server = getAllWishes :<|> getShopWishes :<|> postNewWish

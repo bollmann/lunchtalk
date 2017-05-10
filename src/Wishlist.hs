@@ -22,11 +22,34 @@ import Wishlist.Types.Simple
 import Wishlist.Utils
 
 -- part #1: the service API
-type API = ???
+type API =
+       "wishes" :> Get '[JSON] Wishlist
+  :<|> "wishes" :> Capture "shop" Shop :> Get '[JSON] Wishlist
+  :<|> "wishes" :> ReqBody '[JSON] Wish :> Post '[JSON] ()
+
 
 -- part #2: a service for the above API
 service :: Service API
-service = error "???"
+service = getAllWishes :<|> getShopWishes :<|> postNewWish
+
+getAllWishes :: Controller Wishlist
+getAllWishes = log "getAllWishes" $ do
+  store <- ask
+  liftIO (readIORef store)
+
+getShopWishes :: Shop -> Controller Wishlist
+getShopWishes shop = log "getShopWishes" $ do
+  wishlist <- getAllWishes
+  pure $ filter (\wish -> getShop wish == shop) wishlist
+
+postNewWish :: Wish -> Controller ()
+postNewWish wish = log "postNewWish" $ do
+  store <- ask
+  liftIO $ do
+    wishlist <- readIORef store
+    let wishlist' = Cons wish wishlist
+    writeIORef store wishlist'
+
 
 -- part #3: run the server
 main :: IO ()

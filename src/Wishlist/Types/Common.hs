@@ -50,9 +50,9 @@ type Service' store api = ServerT api (Controller' store)
 type Controller' store  = ReaderT store (ExceptT ServantErr IO)
 
 toHandler :: forall store. store -> Controller' store :~> Handler
-toHandler st = NT controllerToHandler where
+toHandler st = Nat controllerToHandler where
   controllerToHandler :: Controller' store a -> Handler a
-  controllerToHandler m = Handler (runReaderT m st)
+  controllerToHandler m = runReaderT m st
 
 pattern Cons :: a -> [a] -> [a]
 pattern Cons x xs = x:xs
