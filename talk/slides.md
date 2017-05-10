@@ -89,7 +89,7 @@ filter p (Cons x xs)
 ```haskell
 
 
-filter (\n -> n % 2 == 0) (Cons 1 (Cons 2 (Cons 3 Nil)))
+filter (\n -> n `mod` 2 == 0) (Cons 1 (Cons 2 (Cons 3 Nil)))
   == Cons 2 Nil
 ```
 
