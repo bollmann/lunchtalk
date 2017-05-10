@@ -117,6 +117,10 @@ POST /wishes         -- add a new wish to my wishlist
 That's it! Let's see the service in action:
 -------------------------------------------
 
+URL: `https://haskell-wishlist.cfapps.us10.hana.ondemand.com`
+
+. . .
+
 Use `curl` queries to
 
 * list all/shop wishes
