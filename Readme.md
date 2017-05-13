@@ -32,13 +32,13 @@ How to query:
 	                   -- must be one of "amazon", "zalando", or "otto".
 
   POST /wishes         -- add a new wish to the wishlist, which needs to
-                       -- be send in the request body as a JSON object as
-                       -- follows:
-		               --
-					   -- {"name": "my favorite wish!", "shop": "Amazon"}
+                       -- be send in the request body as a JSON object of
+                       -- of the form:
                        --
-					   -- where the wishes "shop" attribute must be either
-					   -- one of "Amazon", "Zalando", or "Otto".
+                       -- {"name": "my favorite wish!", "shop": "Amazon"}
+                       --
+                       -- where the wishes "shop" attribute must be either
+                       -- one of "Amazon", "Zalando", or "Otto".
   ```
 
   For example, when the `wishlist-simple` service is running,
