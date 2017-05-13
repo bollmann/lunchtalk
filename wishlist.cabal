@@ -11,26 +11,6 @@ build-type:          Simple
 extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
-executable wishlist
-  main-is:             Wishlist.hs
-  other-extensions:    TypeOperators
-                     , DataKinds
-                     , OverloadedStrings
-                     , DeriveGeneric
-  build-depends:       aeson >=1.1 && <1.2
-                     , base >=4.9 && <4.10
-                     , containers >= 0.5.7.1
-                     , http-client >=0.5 && <0.6
-                     , mtl >=2.2 && <2.3
-                     , servant >=0.10 && <0.11
-                     , servant-client >=0.10 && <0.11
-                     , servant-server >=0.10 && <0.11
-                     , text >= 1.2.2.1
-                     , warp >=3.2 && <3.3
-  hs-source-dirs:      src
-  default-language:    Haskell2010
-  ghc-options:         -Wall -main-is Wishlist
-
 executable wishlist-simple
   main-is:             WishlistSimple.hs
   other-extensions:    TypeOperators
@@ -51,7 +31,7 @@ executable wishlist-simple
   default-language:    Haskell2010
   ghc-options:         -Wall -main-is WishlistSimple
 
-executable wishlist-mt
+executable wishlist-multitenant
   main-is:             WishlistMT.hs
   other-extensions:    TypeOperators
                      , DataKinds

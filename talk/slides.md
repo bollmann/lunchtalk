@@ -1,6 +1,6 @@
 % Building micro-services in Haskell
 % Service APIs as Types
-% Dominik Bollmann -- May, 9th, 2017
+% Dominik Bollmann -- May 12th, 2017
 
 Let's build a Wishlist micro-service to store our wishes
 --------------------------------------------------------
