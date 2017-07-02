@@ -46,8 +46,8 @@ getAllWishes maybeTenant =
     getAllWishes' (Just tenant) = do
       store <- ask >>= liftIO . readIORef
       case Map.lookup tenant store of
-        Just wishlist -> return $ addHeader (length wishlist) wishlist
-        Nothing       -> return $ addHeader 0 []
+        Just wishlist -> pure $ addHeader (length wishlist) wishlist
+        Nothing       -> pure $ addHeader 0 []
 
 getShopWishes
   :: Maybe Tenant
@@ -56,7 +56,7 @@ getShopWishes
 getShopWishes maybeTenant shop = logWith "getShopWishes" shop $ do
   wishlist <- getAllWishes maybeTenant
   let shopWishes = filter (\wish -> getShop wish == shop) (getResponse wishlist)
-  return $ addHeader (length shopWishes) shopWishes
+  pure $ addHeader (length shopWishes) shopWishes
 
 postNewWish :: Maybe Tenant -> Wish -> Controller ()
 postNewWish maybeTenant wish =

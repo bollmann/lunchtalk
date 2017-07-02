@@ -31,12 +31,12 @@ getAllWishes = log "getAllWishes" $ do
   liftIO (readIORef store)
 
 getShopWishes :: Shop -> Controller Wishlist
-getShopWishes shop = log "getShopWishes" $ do
+getShopWishes shop = logWith "getShopWishes" shop $ do
   wishlist <- getAllWishes
   return $ filter (\wish -> getShop wish == shop) wishlist
 
 postNewWish :: Wish -> Controller ()
-postNewWish wish = logWith "postNewWish " wish $ do
+postNewWish wish = logWith "postNewWish" wish $ do
   store <- ask
   liftIO $ do
     wishlist <- readIORef store
