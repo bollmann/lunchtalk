@@ -215,7 +215,7 @@ Benefits:
 2. yields services that are faithful wrt their API.
 3. clients and docs come (almost) for free
 
-* Servant offers much more!
+* Checkout the Servant library! :-)
 
 References
 ----------
