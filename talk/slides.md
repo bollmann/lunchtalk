@@ -69,10 +69,14 @@ GET  /wishes/:shop   -- get all my wishes at :shop
 POST /wishes         -- add a new wish to my wishlist
 ```
 
-* for our "store" we use an `IORef` holding a `Wishlist`:
+. . .
+
+* implementation details:
 
 ```haskell
-type Store = IORef Wishlist
+type Store      = IORef Wishlist
+type Controller = ReaderT Store Handler
+                = ReaderT Store (ExceptT ServantErr IO)
 ```
 
 That's it! Let's see the service in action:
