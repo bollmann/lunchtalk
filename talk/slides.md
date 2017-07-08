@@ -1,6 +1,6 @@
 % Building micro-services in Haskell
 % Service APIs as Types
-% Dominik Bollmann -- May 12th, 2017
+% Dominik Bollmann -- July 11th, 2017
 
 Let's build a Wishlist micro-service to store our wishes
 --------------------------------------------------------
@@ -35,19 +35,6 @@ data Shop     = Amazon | Zalando | Otto
 type Wishlist = [Wish]
 ```
 
----------------------------------------------------------
-
-```haskell
-dvd :: Wish
-dvd = Wish "Game of Thrones 8" Amazon
-
-shoes :: Wish
-shoes = Wish "Adidas Sneakers" Zalando
-
-myWishes :: Wishlist
-myWishes = [dvd, shoes]
-```
-
 Knowing `Wishlist`s, how do we build the wishlist service?
 ---------------------------------------------
 
@@ -68,7 +55,6 @@ GET  /wishes/:shop   -- get all my wishes at :shop
                         (e.g., Amazon, Zalando)
 POST /wishes         -- add a new wish to my wishlist
 ```
-
 . . .
 
 * implementation details:
