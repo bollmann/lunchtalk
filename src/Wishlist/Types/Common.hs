@@ -18,10 +18,10 @@ type Wishlist = [Wish]
 data Wish = Wish
   { getName :: String
   , getShop :: Shop
-  } deriving (Show, Read, Generic)
+  } deriving (Show, Generic)
 
 data Shop = Amazon | Otto | Zalando
-  deriving (Eq, Show, Read, Generic)
+  deriving (Eq, Show, Generic)
 
 instance FromJSON Shop
 instance ToJSON Shop

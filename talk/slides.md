@@ -15,7 +15,7 @@ POST /wishes         -- add a new wish to my wishlist
 ```
 . . .
 
-* Wishes serialized as JSON:
+* Wishes:
 
 ```json
 { "name": "Game of Thrones 8", "shop": "Amazon" }
@@ -29,9 +29,12 @@ How to build this Wishlist service in Haskell?
 
 
 ```haskell
+data Wish = Wish { name :: String, shop :: Shop }
+  deriving (Show, Generic, FromJSON, ToJSON)
 
-data Wish     = Wish { name :: String, shop :: Shop }
-data Shop     = Amazon | Zalando | Otto
+data Shop = Amazon | Zalando | Otto
+  deriving (Eq, Show, Generic, FromJSON, ToJSON)
+
 type Wishlist = [Wish]
 ```
 
@@ -93,8 +96,6 @@ type API =
 ```
 
 * this really *is* APIs first!
-
-### Benefits
 
 * The wishlist API is *explicit* in the program (compare!)
 * The API type denotes a *live specification* (compare!)
