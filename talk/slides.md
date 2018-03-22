@@ -2,6 +2,19 @@
 % Service APIs as Types
 % Dominik Bollmann -- July 11th, 2017
 
+What's Haskell? Why Haskell?
+----------------------------
+
+### What's Haskell? ![The haskell logo](imgs/haskell-logo.png){width=80}\
+
+* a strongly typed, lazy, purely functional programming language
+* basic building blocks: data types and functions
+
+### Why Haskell?
+
+* embraces the API-driven service development!
+* very exciting!
+
 Let's build a Wishlist micro-service to store our wishes
 --------------------------------------------------------
 
@@ -25,7 +38,7 @@ POST /wishes         -- add a new wish to my wishlist
 How to build this Wishlist service in Haskell?
 ----------------------------------------------
 
-### First, let's model `Wish`es and `Wishlist`s as ![The haskell logo](imgs/haskell-logo.png){width=80}\ types:
+### First, let's model `Wish`es and `Wishlist`s as Haskell types:
 
 
 ```haskell
@@ -43,7 +56,7 @@ Knowing `Wishlist`s, how do we build the wishlist service?
 
 ### Three easy steps thanks to Servant: ![Servant library](imgs/servant.png){width=70}\
 
-1. formalize informal API as a type
+1. formalize informal API as a Haskell type
 2. define wishlist service wrt type spec.
 3. run micro-service
 
@@ -58,15 +71,6 @@ GET  /wishes/:shop   -- get all my wishes at :shop
                         (e.g., Amazon, Zalando)
 POST /wishes         -- add a new wish to my wishlist
 ```
-. . .
-
-* implementation details:
-
-```haskell
-type Store      = IORef Wishlist
-type Controller = ReaderT Store Handler
-                = ReaderT Store (ExceptT ServantErr IO)
-```
 
 That's it! Let's see the service in action:
 -------------------------------------------
@@ -80,7 +84,7 @@ querying the wishlist service must conform to its API.
 
 ### even better:
 
-* servant gives us client functions for querying the API for free!
+* servant gives us client functions to query the API for free!
 
 
 Benefits of an API as a Type
@@ -95,7 +99,7 @@ type API =
          :> Post '[JSON] ()
 ```
 
-* this really *is* APIs first!
+* this really *is* API-driven development!
 
 * The wishlist API is *explicit* in the program (compare!)
 * The API type denotes a *live specification* (compare!)
@@ -135,7 +139,7 @@ POST /wishes         -- add a new wish to my wishlist
 ### New requirements:
 
 * Require `Tenant` request header on all requests
-* Enforce `Wish-Count` response header to be sent in `GET` responses
+* Enforce `Wish-Count` response header to be sent along `GET` responses
 
 Adjust (enrich) our wishlist's formal API:
 ------------------------------------------
@@ -188,8 +192,8 @@ getAllWishes (Just tenant) = do
 Static (compile-time) guarantees wrt the API spec.
 ----------------------------------------------
 
-1. controller must take into account a `Maybe Tenant`
-2. controller must return a `RichWishlist` with the `Wish-Count` header
+1. controllers must take into account the `Tenant` header
+2. `GET` controllers must return a `RichWishlist` including the `Wish-Count` header
 
 going further:
 
@@ -204,7 +208,7 @@ Benefits:
 
 1. explicit, formal, live spec/type for a service.
 2. yields services that are faithful wrt their API.
-3. clients and docs come (almost) for free
+3. clients and docs come (almost) for free and are *in sync!*
 
 * Checkout the Servant library! :-)
 
