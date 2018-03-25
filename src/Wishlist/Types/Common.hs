@@ -35,10 +35,10 @@ instance ToJSON Wish where
 
 instance FromHttpApiData Shop where
   parseUrlPiece value
-    | value == "amazon"  = pure Amazon
-    | value == "otto"    = pure Otto
-    | value == "zalando" = pure Zalando
-  parseUrlPiece value    = fail $
+    | value == "amazon"  = Right Amazon
+    | value == "otto"    = Right Otto
+    | value == "zalando" = Right Zalando
+  parseUrlPiece value    = Left . Text.pack $
     "parseUrlPiece: could not parse `Shop' value '" ++ Text.unpack value ++ "'"
 
 instance ToHttpApiData Shop where
